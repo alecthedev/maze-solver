@@ -4,11 +4,11 @@ from graphics import Line, Point, Window
 
 
 class Hex:
-    def __init__(self, center: Point, win=None) -> None:
+    def __init__(self, position: Point, win=None) -> None:
         self.size = 25
-        self.q, self.r, self.s = pixel_to_hex(self, center)
+        self.q, self.r, self.s = pixel_to_hex(self, position)
         assert self.q + self.r + self.s == 0
-        self.center = center
+        self.center = position
         self.win = win
         self.has_wall = [True] * 6  # E, NE, NW, W, SW, SE
         self.vertices = []
@@ -22,6 +22,9 @@ class Hex:
     def __add__(self, other):
         return Hex(self.q + other.q, self.r + other.r + self.s + other.s)
 
+    def scale_hex(self, factor):
+        return (self.q * factor, self.r * factor, self.s * factor)
+
     def calc_vertex_offset(self, vertex: int):
         angle = 2 * pi * (vertex + 0.5) / 6
         return Point(self.size * cos(angle), self.size * sin(angle))
@@ -32,6 +35,13 @@ class Hex:
             offset = self.calc_vertex_offset(i)
             vertices.append(Point(self.center.x, self.center.y) + offset)
         return vertices
+
+    def calc_neighbor(self, dir: int):
+        return self + self.calc_direction(dir)
+
+    def calc_direction(self, dir: int):
+        assert 0 <= dir < 6
+        return hex_directions[dir]
 
     def draw(self):
         self.vertices = self.calc_vertices()
@@ -64,17 +74,17 @@ def pixel_to_hex(hex, point: Point):
     return q, r, -q - r
 
 
-def hex_to_pixel(hex):
-    x = hex.size * (sqrt(3) * hex.q + sqrt(3) / 2 * hex.r)
-    y = hex.size * (3 / 2 * hex.r)
+def hex_to_pixel(q, r):
+    x = sqrt(3) * q + sqrt(3) / 2 * r
+    y = 3 / 2 * r
     return Point(x, y)
 
 
-#   hex_directions = [
-#       Hex((1, 0, -1)),  # E
-#       Hex((1, -1, 0)),  # NE
-#       Hex((0, -1, 1)),  # NW
-#       Hex((-1, 0, 1)),  # W
-#       Hex((-1, 1, 0)),  # SW
-#       Hex((0, 1, -1)),  # SE
-#   ]
+hex_directions = [
+    Hex(hex_to_pixel(1, 0)),  # E
+    Hex(hex_to_pixel(1, -1)),  # NE
+    Hex(hex_to_pixel(0, -1)),  # NW
+    Hex(hex_to_pixel(-1, 0)),  # W
+    Hex(hex_to_pixel(-1, 1)),  # SW
+    Hex(hex_to_pixel(0, 1)),  # SE
+]
