@@ -1,14 +1,14 @@
 from math import cos, pi, sin, sqrt
 
-from graphics import Line, Point, Window
+from graphics import Line, Point
 
 
 class Hex:
-    def __init__(self, position: Point, win=None) -> None:
-        self.size = 25
-        self.q, self.r, self.s = pixel_to_hex(self, position)
+    def __init__(self, q, r, s, win=None, size=25, origin=Point(0, 0)) -> None:
+        self.size = size
+        self.q, self.r, self.s = q, r, s
         assert self.q + self.r + self.s == 0
-        self.center = position
+        self.center = hex_to_pixel(q, r, size, origin)
         self.win = win
         self.has_wall = [True] * 6  # E, NE, NW, W, SW, SE
         self.vertices = []
@@ -20,7 +20,7 @@ class Hex:
         return not self == other
 
     def __add__(self, other):
-        return Hex(self.q + other.q, self.r + other.r + self.s + other.s)
+        return Hex(self.q + other.q, self.r + other.r, self.s + other.s)
 
     def scale_hex(self, factor):
         return (self.q * factor, self.r * factor, self.s * factor)
@@ -46,25 +46,13 @@ class Hex:
     def draw(self):
         self.vertices = self.calc_vertices()
         assert self.win is not None
-        fill_color = "black"
-        if self.has_wall[0]:
-            line = Line(self.vertices[0], self.vertices[1])
-            self.win.draw_line(line, fill_color)
-        if self.has_wall[1]:
-            line = Line(self.vertices[1], self.vertices[2])
-            self.win.draw_line(line, fill_color)
-        if self.has_wall[2]:
-            line = Line(self.vertices[2], self.vertices[3])
-            self.win.draw_line(line, fill_color)
-        if self.has_wall[3]:
-            line = Line(self.vertices[3], self.vertices[4])
-            self.win.draw_line(line, fill_color)
-        if self.has_wall[4]:
-            line = Line(self.vertices[4], self.vertices[5])
-            self.win.draw_line(line, fill_color)
-        if self.has_wall[5]:
-            line = Line(self.vertices[5], self.vertices[0])
-            self.win.draw_line(line, fill_color)
+        for i in range(6):
+            fill_color = "white"
+            if self.has_wall[i]:
+                fill_color = "black"
+            self.win.draw_line(
+                Line(self.vertices[i], self.vertices[(i + 1) % 6]), fill_color
+            )
 
 
 def pixel_to_hex(hex, point: Point):
@@ -74,17 +62,17 @@ def pixel_to_hex(hex, point: Point):
     return q, r, -q - r
 
 
-def hex_to_pixel(q, r):
-    x = sqrt(3) * q + sqrt(3) / 2 * r
-    y = 3 / 2 * r
+def hex_to_pixel(q, r, size, origin):
+    x = size * (sqrt(3) * q + sqrt(3) / 2 * r) + origin.x
+    y = size * (3 / 2 * r) + origin.y
     return Point(x, y)
 
 
 hex_directions = [
-    Hex(hex_to_pixel(1, 0)),  # E
-    Hex(hex_to_pixel(1, -1)),  # NE
-    Hex(hex_to_pixel(0, -1)),  # NW
-    Hex(hex_to_pixel(-1, 0)),  # W
-    Hex(hex_to_pixel(-1, 1)),  # SW
-    Hex(hex_to_pixel(0, 1)),  # SE
+    Hex(1, 0, -1),  # E
+    Hex(1, -1, 0),  # NE
+    Hex(0, -1, 1),  # NW
+    Hex(-1, 0, 1),  # W
+    Hex(-1, 1, 0),  # SW
+    Hex(0, 1, -1),  # SE
 ]
