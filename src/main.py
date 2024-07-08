@@ -1,12 +1,16 @@
-import graphics as g
+from graphics import Line, Point, Window
+from hex import Hex
+from maze import Maze
+
+WIDTH, HEIGHT = 800, 800
+CENTER = Point(WIDTH // 2, HEIGHT // 2)
 
 
 def main():
-    window = g.Window(800, 600)
-    p1 = g.Point(50, 100)
-    p2 = g.Point(200, 450)
-    window.draw_line(g.Line(p1, p2), "black")
-    window.draw_line(g.Line(g.Point(0, 0), g.Point(511, 64)), "red")
+    window = Window(WIDTH, HEIGHT)
+
+    maze = Maze(CENTER, 25, 4, window)
+
     window.wait_for_close()
 
 
