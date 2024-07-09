@@ -54,6 +54,13 @@ class Hex:
                 Line(self.vertices[i], self.vertices[(i + 1) % 6]), fill_color
             )
 
+    def draw_move(self, target, undo=False):
+        assert self.win is not None
+        fill_color = "red"
+        if undo:
+            fill_color = "grey"
+        self.win.draw_line(Line(self.center, target.center), fill_color)
+
 
 def pixel_to_hex(hex, point: Point):
     q = (sqrt(3) / 3 * point.x - 1 / 3 * point.y) / hex.size
