@@ -13,16 +13,15 @@ class Maze:
         self._cell_size = cell_size
         self._num_rings = num_rings
         self._win = win
-        self._hexes = []
+        self._hexes = {}
         if seed:
             r.seed(seed)
-
         self._calc_spiral()
         self._create_start_and_end()
 
     def _create_start_and_end(self):
         # center cell is the start
-        center_hex = self._hexes[0]
+        center_hex = self._hexes[(0, 0, 0)]
         center_hex.has_wall[r.randint(0, 5)] = False
         center_hex.draw()
         self._animate()
@@ -52,7 +51,7 @@ class Maze:
     def _calc_spiral(self):
         directions = hex_directions
         q, r, s = 0, 0, 0
-        self._hexes.append(Hex(q, r, s, self._win, self._cell_size, self._origin))
+        self._hexes[(q, r, s)] = Hex(q, r, s, self._win, self._cell_size, self._origin)
         for ring in range(self._num_rings + 1):
             q, r, s = -ring, ring, 0
             for dir in directions:
@@ -60,15 +59,15 @@ class Maze:
                     q += dir.q
                     r += dir.r
                     s += dir.s
-                    self._hexes.append(
-                        Hex(q, r, s, self._win, self._cell_size, self._origin)
+                    self._hexes[(q, r, s)] = Hex(
+                        q, r, s, self._win, self._cell_size, self._origin
                     )
 
         self._draw_spiral()
 
     def _draw_spiral(self):
         for hex in self._hexes:
-            hex.draw()
+            self._hexes[hex].draw()
             self._animate()
 
     def _animate(self):
