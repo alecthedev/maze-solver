@@ -12,6 +12,7 @@ class Hex:
         self.win = win
         self.has_wall = [True] * 6  # E, NE, NW, W, SW, SE
         self.vertices = []
+        self.visited = False
 
     def __eq__(self, other) -> bool:
         return self.q == other.q and self.r == other.r and self.s == other.s
@@ -38,6 +39,16 @@ class Hex:
 
     def calc_neighbor(self, dir: int):
         return self + self.calc_direction(dir)
+
+    def calc_all_neighbors(self) -> list[object]:
+        neighbors = []
+        for dir in hex_directions:
+            n_q = self.q + dir.q
+            n_r = self.r + dir.r
+            n_s = self.s + dir.s
+            neighbors.append((n_q, n_r, n_s))
+
+        return neighbors
 
     def calc_direction(self, dir: int):
         assert 0 <= dir < 6
