@@ -9,7 +9,7 @@ CENTER = Point(WIDTH // 2, HEIGHT // 2)
 def main():
     window = Window(WIDTH, HEIGHT)
 
-    maze = Maze(CENTER, 25, 4, window, seed=100)
+    maze = Maze(CENTER, 15, 10, window, seed=100)
 
     window.wait_for_close()
 
