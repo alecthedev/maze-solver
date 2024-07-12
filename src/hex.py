@@ -10,7 +10,7 @@ class Hex:
         assert self.q + self.r + self.s == 0
         self.center = hex_to_pixel(q, r, size, origin)
         self.win = win
-        self.has_wall = [True] * 6  # E, NE, NW, W, SW, SE
+        self._has_wall = [True] * 6
         self.vertices = []
         self.visited = False
 
@@ -23,8 +23,17 @@ class Hex:
     def __add__(self, other):
         return Hex(self.q + other.q, self.r + other.r, self.s + other.s)
 
+    def __str__(self) -> str:
+        return f"({self.q},{self.r},{self.s})"
+
     def scale_hex(self, factor):
         return (self.q * factor, self.r * factor, self.s * factor)
+
+    def get_wall(self, index):
+        return self._has_wall[5 - index]
+
+    def set_wall(self, index, value):
+        self._has_wall[5 - index] = value
 
     def calc_vertex_offset(self, vertex: int):
         angle = 2 * pi * (vertex + 0.5) / 6
@@ -59,7 +68,7 @@ class Hex:
         assert self.win is not None
         for i in range(6):
             fill_color = "white"
-            if self.has_wall[i]:
+            if self._has_wall[i]:
                 fill_color = "black"
             self.win.draw_line(
                 Line(self.vertices[i], self.vertices[(i + 1) % 6]), fill_color
