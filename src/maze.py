@@ -1,7 +1,7 @@
 import random as rand
 from time import sleep
 
-from graphics import Line, Point, Window
+from graphics import Point, Window
 from hex import Hex, hex_directions
 
 
@@ -14,7 +14,7 @@ class Maze:
         self._num_rings = num_rings
         self._win = win
         self._hexes = {}
-        self._start_pos = (0,0,0)
+        self._start_pos = (0, 0, 0)
         self._end_pos = (self._num_rings, 0, -self._num_rings)
 
         if seed:
@@ -24,10 +24,10 @@ class Maze:
     def generate_maze(self):
         self._calc_spiral()
         self._draw_spiral()
-        self._open_start()
         self._open_end()
         self._break_walls(self._hexes[self._start_pos])
-        
+        self._reset_visited()
+
     def _calc_outer_ring(self) -> list[Hex]:
         outer_hexes = []
         q, r, s = -self._num_rings, self._num_rings, 0
@@ -62,28 +62,23 @@ class Maze:
         for hex in self._hexes.values():
             self._draw_hex(hex)
 
-    def _open_start(self):
-        start_hex = self._hexes[self._start_pos]    
-        start_hex.set_wall(3, False)
-        self._draw_hex(start_hex)
-
     def _open_end(self):
         end_hex = self._hexes[self._end_pos]
         end_hex.set_wall(0, False)
         self._draw_hex(end_hex)
 
     def _break_walls(self, curr_hex):
-            curr_hex.visited = True
-            neighbors = curr_hex.calc_all_neighbors()
+        curr_hex.visited = True
+        neighbors = curr_hex.calc_all_neighbors()
 
-            rand.shuffle(neighbors)
+        rand.shuffle(neighbors)
 
-            for neighbor_pos in neighbors:
-                if self._check_neighbor_exists(neighbor_pos):
-                    neighbor_hex = self._hexes[neighbor_pos]
-                    if not neighbor_hex.visited:
-                        self._break_between(curr_hex, neighbor_hex)
-                        self._break_walls(neighbor_hex)
+        for neighbor_pos in neighbors:
+            if self._check_neighbor_exists(neighbor_pos):
+                neighbor_hex = self._hexes[neighbor_pos]
+                if not neighbor_hex.visited:
+                    self._break_between(curr_hex, neighbor_hex)
+                    self._break_walls(neighbor_hex)
 
     def _check_neighbor_exists(self, hex_pos):
         return hex_pos in self._hexes
@@ -104,13 +99,47 @@ class Maze:
         self._draw_hex(hex_a)
         self._draw_hex(hex_b)
 
+    def _reset_visited(self):
+        for hex in self._hexes.values():
+            hex.visited = False
+
+    def solve(self):
+        return self._solve_r(self._hexes[self._start_pos])
+
+    def _solve_r(self, curr_hex):
+        self._animate()
+        curr_hex.visited = True
+        next_hex = None
+        if curr_hex == self._hexes[self._end_pos]:
+            return True
+        for dir in hex_directions:
+            next_hex_pos = (curr_hex.q + dir.q, curr_hex.r + dir.r, curr_hex.s + dir.s)
+            if next_hex_pos in self._hexes:
+                next_hex = self._hexes[next_hex_pos]
+            if next_hex and self._check_neighbor_exists(
+                (next_hex.q, next_hex.r, next_hex.s)
+            ):
+                curr_wall, next_wall = self._get_walls(curr_hex, next_hex)
+                if (
+                    not curr_hex.get_wall(curr_wall)
+                    and not next_hex.get_wall(next_wall)
+                    and not next_hex.visited
+                ):
+                    curr_hex.draw_move(next_hex)
+                    if self._solve_r(next_hex):
+                        return True
+                    curr_hex.draw_move(next_hex, undo=True)
+
+        return False
+
     def _draw_hex(self, hex):
         hex.draw()
         self._animate()
 
     def _animate(self):
         self._win.redraw()
-        sleep(0.01)
+        sleep(0.025)
+
 
 direction_to_walls = {
     (1, 0, -1): (3, 0),  # Walls = (W/E)
